@@ -8,6 +8,14 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: "320px",
+        xsm: "500px",
+        mdlg: "900px",
+      },
+      fontFamily: {
+        workSans: ['"Work Sans"', "sans-serif"],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
@@ -16,4 +24,5 @@ const config: Config = {
   },
   plugins: [],
 };
+
 export default config;
