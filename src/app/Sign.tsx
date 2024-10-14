@@ -1,7 +1,6 @@
-// src/app/auth/signin.tsx
-"use client"; // Indicate this is a client component
+"use client";
 
-import { signIn, signOut, useSession } from "next-auth/react"; // Import necessary hooks and functions
+import { signIn, signOut, useSession } from "next-auth/react";
 
 export default function SignIn() {
   const { data: session } = useSession();

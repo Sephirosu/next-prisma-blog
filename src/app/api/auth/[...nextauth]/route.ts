@@ -1,30 +1,24 @@
-// src/app/api/register/route.ts
-
 import { NextResponse } from "next/server";
-import prisma from "@lib/prisma"; // Adjust based on your project structure
-import { hash } from "bcryptjs"; // Ensure bcryptjs is installed
-import { z } from "zod"; // Ensure zod is installed
+import prisma from "@lib/prisma";
+import { hash } from "bcryptjs";
+import { z } from "zod";
 
-// Define the Zod schema for registration validation
 const registerSchema = z.object({
-  username: z.string().min(1, { message: "Username is required." }), // Name is required
-  email: z.string().email({ message: "Invalid email." }), // Email is required
+  username: z.string().min(1, { message: "Username is required." }),
+  email: z.string().email({ message: "Invalid email." }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }), // Password validation
+    .min(6, { message: "Password must be at least 6 characters." }),
 });
 
-// Handle POST requests to register a new user
 export async function POST(req: Request) {
   try {
-    const body = await req.json(); // Parse the incoming JSON request body
-    console.log("Received body:", body); // Log the body for debugging
+    const body = await req.json();
+    console.log("Received body:", body);
 
-    // Validate input against schema
     const { username, email, password } = registerSchema.parse(body);
-    console.log("Validated values:", { username, email, password }); // Log validated values
+    console.log("Validated values:", { username, email, password });
 
-    // Check if the user already exists in the database by email
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -35,31 +29,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash the password before saving it
     const hashedPassword = await hash(password, 10);
 
-    // Create a new user record in the database
     const user = await prisma.user.create({
       data: {
-        username, // Save the name
+        username,
         email,
-        password: hashedPassword, // Store the hashed password
+        password: hashedPassword,
       },
     });
 
-    console.log("User created:", user); // Log the created user for debugging
+    console.log("User created:", user);
 
     return NextResponse.json(
       { message: "User registered successfully", user },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error during registration:", error); // Log error for debugging
+    console.error("Error during registration:", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: error.errors }, { status: 400 });
     }
     return NextResponse.json(
-      { message: (error as Error).message }, // Type assertion
+      { message: (error as Error).message },
       { status: 400 }
     );
   }

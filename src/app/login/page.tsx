@@ -20,7 +20,7 @@ export default function Login() {
     });
 
     if (res?.ok) {
-      router.push("/protected"); // Redirect after successful login
+      router.push("/protected");
     } else {
       setError("Invalid email or password");
     }

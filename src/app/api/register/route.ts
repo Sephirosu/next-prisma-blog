@@ -1,69 +1,64 @@
 import { NextResponse } from "next/server";
-import prisma from "@lib/prisma"; // Adjust based on your project structure
-import { hash } from "bcryptjs"; // Ensure bcryptjs is installed
-import { z } from "zod"; // Ensure zod is installed
+import prisma from "@lib/prisma";
+import { hash } from "bcryptjs";
+import { z } from "zod";
+import { sendVerificationEmail } from "@lib/mailgun";
+import { v4 as uuidv4 } from "uuid";
 
-// Define the Zod schema for registration validation
 const registerSchema = z.object({
-  username: z.string().min(1, { message: "Username is required." }), // Username is required
-  email: z.string().email({ message: "Invalid email." }), // Email is required
+  username: z.string().min(1, { message: "Username is required." }),
+  email: z.string().email({ message: "Invalid email." }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }), // Password validation
+    .min(6, { message: "Password must be at least 6 characters." }),
 });
 
-// Handle POST requests to register a new user
 export async function POST(req: Request) {
   try {
-    const body = await req.json(); // Parse the incoming JSON request body
-    console.log("Received registration body:", body); // Log the body for debugging
-
-    // Validate input against schema
+    const body = await req.json();
     const { username, email, password } = registerSchema.parse(body);
-    console.log("Validated registration values:", {
-      username,
-      email,
-      password,
-    }); // Log validated values
 
-    // Check if the user already exists in the database by email
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
     if (existingUser) {
-      console.log("User already exists:", existingUser);
       return NextResponse.json(
         { message: "User already exists." },
         { status: 400 }
       );
     }
 
-    // Hash the password before saving it
     const hashedPassword = await hash(password, 10);
-    console.log("Hashed password:", hashedPassword); // Log the hashed password
 
-    // Create a new user record in the database
     const user = await prisma.user.create({
       data: {
-        username, // Save the username
+        username,
         email,
-        password: hashedPassword, // Store the hashed password
+        password: hashedPassword,
       },
     });
 
-    console.log("User created successfully:", user); // Log the created user
+    const verificationToken = uuidv4();
+    await prisma.verificationToken.create({
+      data: {
+        identifier: user.email as string,
+        token: verificationToken,
+        expires: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+
+    await sendVerificationEmail(user.email as string, verificationToken);
 
     return NextResponse.json(
       { message: "User registered successfully", user },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error during registration:", error); // Log error for debugging
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: error.errors }, { status: 400 });
     }
     return NextResponse.json(
-      { message: (error as Error).message }, // Type assertion
+      { message: (error as Error).message },
       { status: 400 }
     );
   }

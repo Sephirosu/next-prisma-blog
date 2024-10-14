@@ -18,6 +18,8 @@ model User {
   password      String?         // Added password for blog login
   accounts      Account[]
   sessions      Session[]
+  resetToken        String?  // Token for password reset
+  resetTokenExpiry  DateTime? // Expiry time for the token
   // Optional for WebAuthn support
   Authenticators Authenticator[]
 

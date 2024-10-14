@@ -3,9 +3,8 @@ import prisma from "@lib/prisma";
 import { compare } from "bcryptjs";
 import { z } from "zod";
 
-// Zod schema for validation
 const loginSchema = z.object({
-  identifier: z.string(), // Single identifier field (email or username)
+  identifier: z.string(),
   password: z
     .string()
     .min(6, { message: "Password must be at least 6 characters." }),
@@ -13,27 +12,20 @@ const loginSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json(); // Parse request body
+    const body = await req.json();
 
     console.log("Received login request body:", body);
 
-    // Validate the input using Zod
     const { identifier, password } = loginSchema.parse(body);
 
-    // Log identifier
     console.log("Identifier received:", identifier);
 
-    // Check if the identifier is an email or username
     const isEmail = identifier.includes("@");
 
-    // Find user by email or username
     const user = await prisma.user.findFirst({
-      where: isEmail
-        ? { email: identifier } // if it's an email
-        : { username: identifier }, // otherwise, assume it's a username
+      where: isEmail ? { email: identifier } : { username: identifier },
     });
 
-    // Check if user exists
     if (!user) {
       return NextResponse.json(
         { message: "Invalid credentials." },
@@ -41,10 +33,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Compare passwords
     const isPasswordValid = await compare(password, user.password);
     if (!isPasswordValid) {
-      // If the password is incorrect, return a message
       console.log("Incorrect password for user:", user.username || user.email);
       return NextResponse.json(
         { message: "Invalid credentials. Please check your password." },
@@ -52,7 +42,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Return user data without password
     const { password: _, ...userWithoutPassword } = user;
     return NextResponse.json(
       { message: "Login successful", user: userWithoutPassword },
