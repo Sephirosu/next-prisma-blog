@@ -4,14 +4,14 @@ import Mailgun from "mailgun.js";
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
   username: "api",
-  key: process.env.MAILGUN_API_KEY!, // Ensure you have this in your .env file
+  key: process.env.MAILGUN_API_KEY!, 
 });
 
 export const sendVerificationEmail = async (email: string, token: string) => {
   const verificationUrl = `${
     process.env.NEXT_PUBLIC_BASE_URL
   }/api/verify?token=${token}&identifier=${encodeURIComponent(email)}`;
-  console.log("Verification URL:", verificationUrl); // Log the verification URL
+  console.log("Verification URL:", verificationUrl); 
 
   const data = {
     from: "YourApp <no-reply@yourdomain.com>",
@@ -21,7 +21,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     html: `<p>Please verify your email by clicking the following link: <a href="${verificationUrl}">${verificationUrl}</a></p>`,
   };
 
-  console.log("Email data:", data); // Log the email data before sending
+  console.log("Email data:", data); 
 
   try {
     await mg.messages.create(process.env.MAILGUN_DOMAIN!, data);
@@ -35,7 +35,7 @@ export const sendResetPasswordEmail = async (email: string, token: string) => {
   const resetUrl = `${
     process.env.NEXT_PUBLIC_BASE_URL
   }/reset-password?token=${token}&identifier=${encodeURIComponent(email)}`;
-  console.log("Reset Password URL:", resetUrl); // Log the reset URL
+  console.log("Reset Password URL:", resetUrl); 
 
   const data = {
     from: "YourApp <no-reply@yourdomain.com>",
@@ -45,7 +45,7 @@ export const sendResetPasswordEmail = async (email: string, token: string) => {
     html: `<p>Please reset your password by clicking the following link: <a href="${resetUrl}">${resetUrl}</a></p>`,
   };
 
-  console.log("Email data:", data); // Log the email data before sending
+  console.log("Email data:", data); 
 
   try {
     await mg.messages.create(process.env.MAILGUN_DOMAIN!, data);
@@ -55,11 +55,11 @@ export const sendResetPasswordEmail = async (email: string, token: string) => {
   }
 };
 
-// Test sending a simple email
+
 const testEmail = async () => {
   const testData = {
     from: "YourApp <no-reply@yourdomain.com>",
-    to: "gagijebasmesnat@gmail.com", // Use a valid email address
+    to: "gagijebasmesnat@gmail.com",
     subject: "Test Email",
     text: "This is a test email from Mailgun.",
     html: "<p>This is a test email from Mailgun.</p>",
@@ -73,5 +73,3 @@ const testEmail = async () => {
   }
 };
 
-// Uncomment to run test
-// testEmail();

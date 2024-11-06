@@ -26,7 +26,7 @@ export default function PostForm({
     if (res.ok) {
       setTitle("");
       setContent("");
-      onPostCreated(); // Refresh post list
+      onPostCreated(); 
     }
   };
 

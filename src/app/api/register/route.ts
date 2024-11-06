@@ -29,7 +29,6 @@ export async function POST(req: Request) {
     }
 
     const hashedPassword = await hash(password, 10);
-
     const user = await prisma.user.create({
       data: {
         username,
@@ -41,13 +40,13 @@ export async function POST(req: Request) {
     const verificationToken = uuidv4();
     await prisma.verificationToken.create({
       data: {
-        identifier: user.email as string,
+        identifier: user.email,
         token: verificationToken,
         expires: new Date(Date.now() + 60 * 60 * 1000),
       },
     });
 
-    await sendVerificationEmail(user.email as string, verificationToken);
+    await sendVerificationEmail(user.email, verificationToken);
 
     return NextResponse.json(
       { message: "User registered successfully", user },

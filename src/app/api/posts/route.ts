@@ -1,45 +1,49 @@
 import { NextResponse } from "next/server";
-import prisma from "@lib/prisma";
+import prisma from "@lib/prisma"; // prilagodi putanju prema tvom projektu
+import { auth } from "../../../../auth";
 
 export async function GET() {
   try {
     const posts = await prisma.blogPost.findMany({
       include: {
-        author: true,
-        category: true,
+        author: true, // uključiti informacije o autoru
+        category: true, // uključiti informacije o kategoriji
       },
     });
     return NextResponse.json(posts, { status: 200 });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching posts:", error);
     return NextResponse.json(
-      { error: "Failed to fetch blog posts." },
+      { error: "Failed to fetch posts" },
       { status: 500 }
     );
   }
 }
 
-export async function POST(req: Request) {
-  const { title, content, authorId, categoryId } = await req.json();
+export async function POST(request: Request) {
+  const session = await auth();
 
-  console.log("Attempting to create a new post.");
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
-    const newPost = await prisma.blogPost.create({
+    const { title, content, categoryId } = await request.json();
+
+    const post = await prisma.blogPost.create({
       data: {
         title,
         content,
-        authorId,
+        authorId: session.user.id,
         categoryId,
       },
     });
 
-    console.log(`New post created with ID: ${newPost.id}`);
-    return NextResponse.json(newPost, { status: 201 });
+    return NextResponse.json(post, { status: 201 });
   } catch (error) {
-    console.error(error);
+    console.error("Error creating post:", error);
     return NextResponse.json(
-      { error: "Failed to create the blog post." },
+      { error: "Failed to create post" },
       { status: 500 }
     );
   }

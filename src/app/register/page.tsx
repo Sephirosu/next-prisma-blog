@@ -1,109 +1,79 @@
 "use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-
-const registrationSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-});
 
 const RegisterPage = () => {
-  const router = useRouter();
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+    setMessage("");
 
-    try {
-      registrationSchema.parse({ email, password }); // Validate input
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, email, password }),
+    });
 
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const data = await response.json();
 
-      const responseText = await res.text();
-      let data = null;
+    if (response.ok) {
+      setMessage(data.message);
 
-      if (responseText) {
-        data = JSON.parse(responseText);
-      }
-
-      if (res.ok) {
-        setSuccess("Registration successful! Redirecting...");
-        setTimeout(() => router.push("/login"), 2000);
-      } else {
-        setError(data?.message || "Registration failed");
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setError(error.errors[0].message); // Show Zod validation error
-      } else {
-        setError("An error occurred during registration");
-      }
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+    } else {
+      setError(data.message);
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <form
-        onSubmit={handleRegister}
-        className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl mb-4">Register</h2>
-        {error && <p className="text-red-500">{error}</p>}
-        {success && <p className="text-green-500">{success}</p>}
-        <div className="mb-4">
-          <label className="block text-sm font-bold mb-2" htmlFor="email">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
-            placeholder="Enter your email"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-bold mb-2" htmlFor="password">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg"
-            placeholder="Enter your password"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded-lg w-full hover:bg-blue-600"
-        >
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">Register</h1>
+      {error && <p className="text-red-500">{error}</p>}
+      {message && <p className="text-green-500">{message}</p>}
+      <form onSubmit={handleSubmit} className="flex flex-col w-80">
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="mb-2 p-2 border border-gray-300 rounded"
+          required
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="mb-2 p-2 border border-gray-300 rounded"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="mb-4 p-2 border border-gray-300 rounded"
+          required
+        />
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded">
           Register
         </button>
-        <p className="mt-4 text-sm">
-          Already have an account?
-          <a href="/login" className="text-blue-500 hover:underline">
-            Sign in
-          </a>
-        </p>
       </form>
+      <p className="mt-4">
+        Already have an account?{" "}
+        <a href="/login" className="text-blue-500">
+          Login
+        </a>
+      </p>
     </div>
   );
 };

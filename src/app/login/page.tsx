@@ -1,56 +1,50 @@
 "use client";
-
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
+export default function LoginPage() {
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const res = await signIn("credentials", {
+    const response = await signIn("credentials", {
       redirect: false,
-      email,
+      identifier,
       password,
     });
 
-    if (res?.ok) {
-      router.push("/protected");
+    if (response?.error) {
+      setError("Login failed: " + response.error);
     } else {
-      setError("Invalid email or password");
+      window.location.href = "/";
     }
   };
 
   return (
     <div>
       <h1>Login</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
+      <form onSubmit={handleLogin}>
+        <input
+          type="text"
+          placeholder="Username or Email"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
         <button type="submit">Login</button>
       </form>
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }

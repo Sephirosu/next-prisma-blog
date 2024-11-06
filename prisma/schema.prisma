@@ -7,23 +7,23 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Authentication-related models
+
 model User {
-  id            String          @id @default(cuid()) // Changed to cuid for consistency with auth system
+  id            String          @id @default(cuid()) 
   name          String?
-  username      String          @unique 
+  username      String?          @unique 
   email         String?         @unique
   emailVerified DateTime?
   image         String?
-  password      String?         // Added password for blog login
+  password      String?      
   accounts      Account[]
   sessions      Session[]
-  resetToken        String?  // Token for password reset
-  resetTokenExpiry  DateTime? // Expiry time for the token
-  // Optional for WebAuthn support
+  resetToken        String?  
+  resetTokenExpiry  DateTime?
+  
   Authenticators Authenticator[]
 
-  // Blog-related field
+  
   posts         BlogPost[]
 
   createdAt     DateTime @default(now())
@@ -58,7 +58,7 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -71,7 +71,7 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Optional for WebAuthn support
+
 model Authenticator {
   credentialID         String  @unique
   userId               String
@@ -87,7 +87,7 @@ model Authenticator {
   @@id([userId, credentialID])
 }
 
-// Blog-related models
+
 model Category {
   id      Int        @id @default(autoincrement())
   name    String     @unique
@@ -98,12 +98,13 @@ model BlogPost {
   id         Int      @id @default(autoincrement())
   title      String
   content    String
-  authorId   String   // Updated to match the String ID type of User
+  imagePath String?
+  authorId   String  
   categoryId Int    
   author     User     @relation(fields: [authorId], references: [id])
   category   Category @relation(fields: [categoryId], references: [id])
 
-  // Add createdAt and updatedAt fields
-  createdAt  DateTime @default(now())  // Automatically set to the current date and time when the post is created
-  updatedAt  DateTime @updatedAt        // Automatically updated to the current date and time when the post is updated
+  
+  createdAt  DateTime @default(now())  
+  updatedAt  DateTime @updatedAt        
 }
